@@ -40,6 +40,10 @@ read -n 1 -s -r -p ""
 ZT_INTERFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep '^zt')
 ZT_IP=$(ip -4 addr show $ZT_INTERFACE | grep -oP '(?<=inet\s)\d+(\.\d+){3}(/\d+)?' | awk -F'/' '{print $1}')
 
+echo "Got address $ZT_IP on interface $ZT_INTERFACE."
+echo "Press any key to continue..."
+# Wait for the user to press a key
+read -n 1 -s -r -p ""
 # Enable IP forwarding
 sysctl -w net.ipv4.ip_forward=1
 sh -c "echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf"
@@ -50,7 +54,7 @@ iptables -A FORWARD -i eth0 -o $ZT_INTERFACE -m state --state RELATED,ESTABLISHE
 iptables -A FORWARD -i $ZT_INTERFACE -o eth0 -j ACCEPT
 
 # Save iptables rules
-netfilter-persistent save
+bash -c iptables-save > /etc/iptables/rules.v4
 
-"ZeroTier is configured as an Exit Node."
-"Please configure the route 0.0.0.0/0 via $ZT_IP in ZeroTier Central."
+echo "ZeroTier is configured as an Exit Node."
+echo "Please configure the route 0.0.0.0/0 via $ZT_IP in ZeroTier Central."
