@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Update packages and install ZeroTier and iptables-persistent
-sudo apt install -y iptables-persistent
+apt install -y iptables-persistent
 
 # Add ZeroTier repository and install
-curl -s https://install.zerotier.com | sudo bash
+curl -s https://install.zerotier.com | bash
 
 # Prompt the user for the Network ID
 while true; do
@@ -17,7 +17,7 @@ while true; do
 done
 
 # Join the ZeroTier network
-sudo zerotier-cli join $NETWORK_ID
+zerotier-cli join $NETWORK_ID
 JOIN_STATUS=$?
 
 if [ $JOIN_STATUS -ne 0 ]; then
@@ -26,7 +26,7 @@ if [ $JOIN_STATUS -ne 0 ]; then
 fi
 
 # Get the Node ID
-NODE_ID=$(sudo zerotier-cli info | grep '200 info' | awk '{print $3}')
+NODE_ID=$(zerotier-cli info | grep '200 info' | awk '{print $3}')
 
 # Inform the user
 echo "ZeroTier is installed and joined the network."
@@ -41,16 +41,16 @@ ZT_INTERFACE=$(ip -o link show | awk -F': ' '{print $2}' | grep '^zt')
 ZT_IP=$(ip -4 addr show $ZT_INTERFACE | grep -oP '(?<=inet\s)\d+(\.\d+){3}(/\d+)?' | awk -F'/' '{print $1}')
 
 # Enable IP forwarding
-sudo sysctl -w net.ipv4.ip_forward=1
-sudo sh -c "echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf"
+sysctl -w net.ipv4.ip_forward=1
+sh -c "echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf"
 
 # Set up NAT
-sudo iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-sudo iptables -A FORWARD -i eth0 -o $ZT_INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
-sudo iptables -A FORWARD -i $ZT_INTERFACE -o eth0 -j ACCEPT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -A FORWARD -i eth0 -o $ZT_INTERFACE -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i $ZT_INTERFACE -o eth0 -j ACCEPT
 
 # Save iptables rules
-sudo netfilter-persistent save
+netfilter-persistent save
 
-echo "ZeroTier is configured as an Exit Node."
-echo "Please configure the route 0.0.0.0/0 via $ZT_IP in ZeroTier Central."
+"ZeroTier is configured as an Exit Node."
+"Please configure the route 0.0.0.0/0 via $ZT_IP in ZeroTier Central."
