@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Update packages and install ZeroTier and iptables-persistent
+apt install -y iptables
 apt install -y iptables-persistent
 
 # Add ZeroTier repository and install
